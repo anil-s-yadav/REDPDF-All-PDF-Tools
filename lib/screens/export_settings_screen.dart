@@ -310,7 +310,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
       backgroundColor: appColors.background,
       appBar: AppBar(
         backgroundColor: appColors.background,
-        elevation: 0,
+        centerTitle: true,
         title: Text(
           'Export Settings',
           style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold),
@@ -318,397 +318,460 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
         iconTheme: IconThemeData(color: appColors.text),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: appColors.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
+        child: Column(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(),
+                behavior: HitTestBehavior.opaque,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle(
+                        'COMPRESSION',
+                        appColors,
+                        topPadding: 0.0,
+                      ),
+                      Row(
+                        children: [
+                          _buildCompressionCard(
+                            'Normal',
+                            'Best quality',
+                            Icons.high_quality,
+                            !_isHighCompression,
+                            appColors,
+                            () {
+                              setState(() => _isHighCompression = false);
+                            },
+                          ),
+                          const SizedBox(width: 16),
+                          _buildCompressionCard(
+                            'Small File',
+                            'Lower quality',
+                            Icons.compress,
+                            _isHighCompression,
+                            appColors,
+                            () {
+                              setState(() => _isHighCompression = true);
+                            },
+                          ),
+                        ],
+                      ),
+
+                      _buildSectionTitle('PAGE SETTINGS', appColors),
+                      _buildSettingSelectorCard(
+                        title: 'Page Size',
+                        value: settings.pageSizeString,
+                        icon: Icons.description_outlined,
+                        appColors: appColors,
+                        onTap: () => _showPageSizeDialog(context, settings),
+                      ),
+                      _buildSettingSelectorCard(
+                        title: 'Page Orientation',
+                        value: settings.orientationString,
+                        icon: Icons.crop_portrait_rounded,
+                        appColors: appColors,
+                        onTap: () => _showOrientationDialog(context, settings),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildSectionTitle('SECURITY', appColors),
+                          Switch(
+                            value: _securityEnabled,
+                            onChanged: (val) =>
+                                setState(() => _securityEnabled = val),
+                            activeThumbColor: Colors.white,
+                            activeTrackColor: appColors.primary,
+                          ),
+                        ],
+                      ),
+                      if (_securityEnabled) ...[
+                        Text(
+                          'User Password',
+                          style: TextStyle(
+                            color: appColors.subtitle,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: appColors.surface,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: appColors.divider ?? Colors.grey.shade200,
+                            ),
+                          ),
+                          child: TextField(
+                            controller: _userPasswordController,
+                            obscureText: _obscureUserPassword,
+                            style: TextStyle(color: appColors.text),
+                            onChanged: (_) => setState(() {}),
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              border: InputBorder.none,
+                              hintText: 'Set opening password',
+                              hintStyle: TextStyle(
+                                color: appColors.subtitle?.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureUserPassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureUserPassword =
+                                        !_obscureUserPassword;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Confirm Password',
+                          style: TextStyle(
+                            color: appColors.subtitle,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: appColors.surface,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color:
+                                  (_confirmPasswordController.text.isNotEmpty &&
+                                      _userPasswordController.text !=
+                                          _confirmPasswordController.text)
+                                  ? Colors.red
+                                  : (appColors.divider ?? Colors.grey.shade200),
+                            ),
+                          ),
+                          child: TextField(
+                            controller: _confirmPasswordController,
+                            obscureText: _obscureConfirmPassword,
+                            style: TextStyle(color: appColors.text),
+                            onChanged: (_) => setState(() {}),
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              border: InputBorder.none,
+                              hintText: 'Confirm opening password',
+                              hintStyle: TextStyle(
+                                color: appColors.subtitle?.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureConfirmPassword =
+                                        !_obscureConfirmPassword;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_confirmPasswordController.text.isNotEmpty &&
+                            _userPasswordController.text !=
+                                _confirmPasswordController.text) ...[
+                          const SizedBox(height: 6),
+                          const Padding(
+                            padding: EdgeInsets.only(left: 16.0),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Passwords do not match',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Text(
+                              'Owner Password',
+                              style: TextStyle(
+                                color: appColors.subtitle,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: () => _showOwnerPasswordInfo(context),
+                              child: Icon(
+                                Icons.help_outline,
+                                size: 16,
+                                color: appColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: appColors.surface,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: appColors.divider ?? Colors.grey.shade200,
+                            ),
+                          ),
+                          child: TextField(
+                            controller: _ownerPasswordController,
+                            obscureText: _obscureOwnerPassword,
+                            style: TextStyle(color: appColors.text),
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              border: InputBorder.none,
+                              hintText: 'Set administrative password',
+                              hintStyle: TextStyle(
+                                color: appColors.subtitle?.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureOwnerPassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureOwnerPassword =
+                                        !_obscureOwnerPassword;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      _buildSectionTitle('PERMISSIONS', appColors),
+                      _buildPermissionCard(
+                        'Allow Printing',
+                        _allowPrinting,
+                        appColors,
+                        (val) => setState(() => _allowPrinting = val ?? false),
+                      ),
+                      _buildPermissionCard(
+                        'Allow Copying',
+                        _allowCopying,
+                        appColors,
+                        (val) => setState(() => _allowCopying = val ?? false),
+                      ),
+
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: appColors.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+                border: Border(
+                  top: BorderSide(
                     color: appColors.divider ?? Colors.grey.shade200,
                   ),
                 ),
-                child: TextField(
-                  controller: _fileNameController,
-                  style: TextStyle(color: appColors.text),
-                  decoration: InputDecoration(
-                    hintText: 'Enter file name (optional)',
-                    hintStyle: TextStyle(
-                      color: appColors.subtitle?.withValues(alpha: 0.6),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    border: InputBorder.none,
-                    suffixIcon: Container(
-                      decoration: BoxDecoration(
-                        color: appColors.primary!.withValues(alpha: 0.1),
-                        borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(24),
-                          bottomRight: Radius.circular(24),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.picture_as_pdf,
-                        color: appColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
               ),
-
-              _buildSectionTitle('COMPRESSION', appColors),
-              Row(
-                children: [
-                  _buildCompressionCard(
-                    'Normal',
-                    'Best quality',
-                    Icons.high_quality,
-                    !_isHighCompression,
-                    appColors,
-                    () {
-                      setState(() => _isHighCompression = false);
-                    },
-                  ),
-                  const SizedBox(width: 16),
-                  _buildCompressionCard(
-                    'Small File',
-                    'Lower quality',
-                    Icons.compress,
-                    _isHighCompression,
-                    appColors,
-                    () {
-                      setState(() => _isHighCompression = true);
-                    },
-                  ),
-                ],
-              ),
-
-              // const SizedBox(height: 24),
-              _buildSectionTitle('Page Settings', appColors),
-              // _buildListTile(
-              //   context,
-              //   Icons.insert_drive_file_outlined,
-              //   'Page Size',
-              //   trailing: Text(
-              //     settings.pageSizeString,
-              //     style: const TextStyle(
-              //       color: Color(0xFF64748B),
-              //       fontWeight: FontWeight.w500,
-              //     ),
-              //   ),
-              //   onTap: () => _showPageSizeDialog(context, settings),
-              // ),
-              ListTile(
-                dense: true,
-                title: Text(
-                  'Page Size',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: appColors.text,
-                  ),
-                ),
-                trailing: Text(
-                  settings.pageSizeString,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-
-                onTap: () => _showPageSizeDialog(context, settings),
-              ),
-              ListTile(
-                // contentPadding: EdgeInsets.symmetric(vertical: 0),
-                dense: true,
-                title: Text(
-                  'Page Orientation',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: appColors.text,
-                  ),
-                ),
-                trailing: Text(
-                  settings.orientationString,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-
-                onTap: () => _showOrientationDialog(context, settings),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildSectionTitle('SECURITY', appColors),
-                  Switch(
-                    value: _securityEnabled,
-                    onChanged: (val) => setState(() => _securityEnabled = val),
-                    activeThumbColor: Colors.white,
-                    activeTrackColor: appColors.primary,
-                  ),
-                ],
-              ),
-              if (_securityEnabled) ...[
-                Text(
-                  'User Password',
-                  style: TextStyle(color: appColors.subtitle, fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: appColors.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: appColors.divider ?? Colors.grey.shade200,
-                    ),
-                  ),
-                  child: TextField(
-                    controller: _userPasswordController,
-                    obscureText: _obscureUserPassword,
-                    style: TextStyle(color: appColors.text),
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      border: InputBorder.none,
-                      hintText: 'Set opening password',
-                      hintStyle: TextStyle(
-                        color: appColors.subtitle?.withValues(alpha: 0.5),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureUserPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureUserPassword = !_obscureUserPassword;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Confirm Password',
-                  style: TextStyle(color: appColors.subtitle, fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: appColors.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color:
-                          (_confirmPasswordController.text.isNotEmpty &&
-                              _userPasswordController.text !=
-                                  _confirmPasswordController.text)
-                          ? Colors.red
-                          : (appColors.divider ?? Colors.grey.shade200),
-                    ),
-                  ),
-                  child: TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
-                    style: TextStyle(color: appColors.text),
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      border: InputBorder.none,
-                      hintText: 'Confirm opening password',
-                      hintStyle: TextStyle(
-                        color: appColors.subtitle?.withValues(alpha: 0.5),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                if (_confirmPasswordController.text.isNotEmpty &&
-                    _userPasswordController.text !=
-                        _confirmPasswordController.text) ...[
-                  const SizedBox(height: 6),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 16.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Passwords do not match',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Row(
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Owner Password',
-                      style: TextStyle(color: appColors.subtitle, fontSize: 13),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'FILE NAME (OPTIONAL)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                            color: appColors.subtitle,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 13,
+                              color: appColors.subtitle,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Expected Size: ',
+                              style: TextStyle(
+                                color: appColors.subtitle,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              _getEstimatedSize(),
+                              style: TextStyle(
+                                color: appColors.text,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => _showOwnerPasswordInfo(context),
-                      child: Icon(
-                        Icons.help_outline,
-                        size: 16,
-                        color: appColors.primary,
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: appColors.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: appColors.divider ?? Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.description_outlined,
+                            size: 20,
+                            color: appColors.primary,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _fileNameController,
+                              style: TextStyle(
+                                color: appColors.text,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                border: InputBorder.none,
+                                hintText: 'Enter file name (optional)',
+                                hintStyle: TextStyle(
+                                  color: appColors.subtitle?.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _fileNameController,
+                            builder: (context, value, _) {
+                              if (value.text.isNotEmpty) {
+                                return GestureDetector(
+                                  onTap: () => _fileNameController.clear(),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                    child: Icon(
+                                      Icons.cancel,
+                                      size: 18,
+                                      color: appColors.subtitle?.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Text(
+                                  '.pdf',
+                                  style: TextStyle(
+                                    color: appColors.subtitle?.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _startProcessing,
+                        icon: const Icon(
+                          Icons.download,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        label: const Text(
+                          'Save & Export PDF',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: appColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: appColors.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: appColors.divider ?? Colors.grey.shade200,
-                    ),
-                  ),
-                  child: TextField(
-                    controller: _ownerPasswordController,
-                    obscureText: _obscureOwnerPassword,
-                    style: TextStyle(color: appColors.text),
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      border: InputBorder.none,
-                      hintText: 'Set administrative password',
-                      hintStyle: TextStyle(
-                        color: appColors.subtitle?.withValues(alpha: 0.5),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureOwnerPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureOwnerPassword = !_obscureOwnerPassword;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-
-              _buildSectionTitle('PERMISSIONS', appColors),
-              _buildPermissionCard(
-                'Allow Printing',
-                _allowPrinting,
-                appColors,
-                (val) => setState(() => _allowPrinting = val ?? false),
-              ),
-              _buildPermissionCard(
-                'Allow Copying',
-                _allowCopying,
-                appColors,
-                (val) => setState(() => _allowCopying = val ?? false),
-              ),
-
-              const SizedBox(height: 120),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: appColors.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-          border: Border(
-            top: BorderSide(color: appColors.divider ?? Colors.transparent),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.info_outline, size: 14, color: appColors.subtitle),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Estimated File Size: ',
-                    style: TextStyle(color: appColors.subtitle, fontSize: 13),
-                  ),
-                  Text(
-                    _getEstimatedSize(),
-                    style: TextStyle(
-                      color: appColors.text,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _startProcessing,
-                icon: const Icon(Icons.download, color: Colors.white),
-                label: const Text(
-                  'Save & Export PDF',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 0,
                 ),
               ),
             ),
@@ -718,9 +781,13 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, AppColors appColors) {
+  Widget _buildSectionTitle(
+    String title,
+    AppColors appColors, {
+    double topPadding = 24.0,
+  }) {
     return Padding(
-      padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
+      padding: EdgeInsets.only(top: topPadding, bottom: 12.0),
       child: Text(
         title,
         style: TextStyle(
@@ -745,7 +812,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
                 ? appColors.primary!.withValues(alpha: 0.1)
@@ -791,6 +858,98 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     );
   }
 
+  Widget _buildSettingSelectorCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required AppColors appColors,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: appColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: appColors.divider ?? Colors.grey.shade200,
+          width: 1.2,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: appColors.primary?.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: appColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: appColors.text,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: appColors.primary?.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color:
+                          appColors.primary?.withValues(alpha: 0.25) ??
+                          Colors.transparent,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        value,
+                        style: TextStyle(
+                          color: appColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: appColors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPermissionCard(
     String title,
     bool isSelected,
@@ -800,18 +959,20 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isSelected
-              ? appColors.primary!.withValues(alpha: 0.2)
-              : (appColors.divider ?? Colors.transparent),
-        ),
-      ),
-      child: Material(
         color: isSelected
             ? appColors.primary!.withValues(alpha: 0.05)
             : appColors.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isSelected
+              ? appColors.primary!.withValues(alpha: 0.3)
+              : (appColors.divider ?? Colors.grey.shade200),
+          width: 1.2,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
         clipBehavior: Clip.antiAlias,
         child: CheckboxListTile(
           title: Text(
@@ -843,14 +1004,33 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Page Size'),
+        backgroundColor: appColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Select Page Size',
+          style: TextStyle(
+            color: appColors.text,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: PdfPageSize.values.map((size) {
+            final isSelected = settings.defaultPageSize == size;
             return ListTile(
-              title: Text(size.toString().split('.').last.toUpperCase()),
-              trailing: settings.defaultPageSize == size
-                  ? Icon(Icons.check, color: appColors.primary)
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Text(
+                size.toString().split('.').last.toUpperCase(),
+                style: TextStyle(
+                  color: isSelected ? appColors.primary : appColors.text,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              trailing: isSelected
+                  ? Icon(Icons.check_circle_rounded, color: appColors.primary)
                   : null,
               onTap: () {
                 settings.setDefaultPageSize(size);
@@ -868,17 +1048,35 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Orientation'),
+        backgroundColor: appColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Select Orientation',
+          style: TextStyle(
+            color: appColors.text,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: PdfPageOrientation.values.map((orientation) {
+            final isSelected = settings.defaultOrientation == orientation;
+            final name = orientation.toString().split('.').last;
+            final label = name[0].toUpperCase() + name.substring(1);
             return ListTile(
-              title: Text(
-                orientation.toString().split('.').last[0].toUpperCase() +
-                    orientation.toString().split('.').last.substring(1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              trailing: settings.defaultOrientation == orientation
-                  ? Icon(Icons.check, color: appColors.primary)
+              title: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? appColors.primary : appColors.text,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              trailing: isSelected
+                  ? Icon(Icons.check_circle_rounded, color: appColors.primary)
                   : null,
               onTap: () {
                 settings.setDefaultOrientation(orientation);

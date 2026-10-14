@@ -47,7 +47,7 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
       try {
         final doc = await pdfx.PdfDocument.openFile(file.path);
         final count = doc.pagesCount;
-        
+
         await _pdfDocument?.close(); // Close old doc if any
 
         setState(() {
@@ -59,7 +59,11 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cannot read this PDF. It may be encrypted or corrupted.')),
+            const SnackBar(
+              content: Text(
+                'Cannot read this PDF. It may be encrypted or corrupted.',
+              ),
+            ),
           );
         }
       } finally {
@@ -96,14 +100,16 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
   Future<void> _startDeleting() async {
     if (_pagesToDelete.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least 1 page to delete')),
+        const SnackBar(
+          content: Text('Please select at least 1 page to delete'),
+        ),
       );
       return;
     }
     if (_pagesToDelete.length == _pageCount) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot delete all pages')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cannot delete all pages')));
       return;
     }
 
@@ -122,10 +128,13 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
             );
             if (outPath == null) throw Exception('Delete failed');
             final file = File(outPath);
-            final newPath = p.join(file.parent.path, '${FileUtils.generateDefaultFileName(prefix: 'DeletedPages')}.pdf');
+            final newPath = p.join(
+              file.parent.path,
+              '${FileUtils.generateDefaultFileName(prefix: 'DeletedPages')}.pdf',
+            );
             final renamedFile = await file.rename(newPath);
             final fileSize = await renamedFile.length();
-            
+
             final history = PdfHistory(
               id: DateTime.now().millisecondsSinceEpoch.toString(),
               title: p.basename(renamedFile.path),
@@ -136,7 +145,7 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
             if (mounted) {
               context.read<PdfProvider>().addHistory(history);
             }
-            
+
             return ProcessResult(
               operation: 'Delete Pages',
               filePath: renamedFile.path,
@@ -152,7 +161,7 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
 
   void _showFullScreenPreview(int pageNumber) {
     if (_pdfDocument == null) return;
-    
+
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -168,7 +177,9 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
                   future: _renderLargePage(_pdfDocument!, pageNumber),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator(color: Colors.white);
+                      return const CircularProgressIndicator(
+                        color: Colors.white,
+                      );
                     }
                     if (snapshot.hasData && snapshot.data != null) {
                       return Image.memory(
@@ -176,7 +187,10 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
                         fit: BoxFit.contain,
                       );
                     }
-                    return const Text('Error loading preview', style: TextStyle(color: Colors.white));
+                    return const Text(
+                      'Error loading preview',
+                      style: TextStyle(color: Colors.white),
+                    );
                   },
                 ),
               ),
@@ -195,14 +209,21 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black54,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     'Page $pageNumber',
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -213,7 +234,10 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
     );
   }
 
-  Future<pdfx.PdfPageImage?> _renderLargePage(pdfx.PdfDocument document, int pageNumber) async {
+  Future<pdfx.PdfPageImage?> _renderLargePage(
+    pdfx.PdfDocument document,
+    int pageNumber,
+  ) async {
     final page = await document.getPage(pageNumber);
     final image = await page.render(
       width: page.width * 2, // High resolution for preview
@@ -232,7 +256,10 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
     return Scaffold(
       backgroundColor: appColors.background,
       appBar: AppBar(
-        title: Text('Delete PDF Pages', style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Delete PDF Pages',
+          style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: appColors.background,
         elevation: 0,
         iconTheme: IconThemeData(color: appColors.text),
@@ -240,229 +267,322 @@ class _DeletePagesPdfScreenState extends State<DeletePagesPdfScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _selectedPdf == null || _pdfDocument == null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.auto_delete_outlined, size: 80, color: appColors.subtitle?.withValues(alpha: 0.2)),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Select a PDF to delete pages',
-                                style: TextStyle(color: appColors.subtitle, fontSize: 18),
-                              ),
-                            ],
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _selectedPdf == null || _pdfDocument == null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GestureDetector(
+                      onTap: _pickPdf,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 36,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: appColors.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.pinkAccent.withValues(alpha: 0.3),
+                            width: 1.5,
                           ),
-                        )
-                      : Column(
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            GestureDetector(
-                              onTap: _openPdfPreview,
-                              child: Container(
-                                margin: const EdgeInsets.all(20),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: appColors.surface,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.redAccent,
-                                    width: 2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.redAccent.withValues(alpha: 0.1),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 45,
-                                      height: 60,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: PdfFileThumbnail(file: _selectedPdf!),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            p.basename(_selectedPdf!.path),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold, fontSize: 16),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text('$_pageCount pages', style: TextStyle(color: appColors.subtitle)),
-                                          const SizedBox(height: 6),
-                                          const Text('Tap to preview PDF', style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.w600)),
-                                        ],
-                                      ),
-                                    ),
-                                    const Icon(Icons.remove_red_eye_outlined, color: Colors.blueAccent),
-                                  ],
-                                ),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.pinkAccent.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.auto_delete_rounded,
+                                size: 40,
+                                color: Colors.pinkAccent,
                               ),
                             ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Text(
-                                'Select pages to DELETE. Tap image to preview full size.',
-                                style: TextStyle(fontWeight: FontWeight.w600),
+                            const SizedBox(height: 14),
+                            Text(
+                              'Select PDF to Delete Pages',
+                              style: TextStyle(
+                                color: appColors.text,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            Expanded(
-                              child: GridView.builder(
-                                padding: const EdgeInsets.all(16),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3, // Reduced to 3 for better thumbnail visibility
-                                  childAspectRatio: 0.75, // Standard PDF aspect ratio
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 16,
-                                ),
-                                itemCount: _pageCount,
-                                itemBuilder: (context, index) {
-                                  final page = index + 1;
-                                  final isSelected = _pagesToDelete.contains(page);
-                                  
-                                  return Stack(
-                                    children: [
-                                      // Thumbnail
-                                      GestureDetector(
-                                        onTap: () => _showFullScreenPreview(page),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: appColors.surface,
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(
-                                              color: isSelected ? Colors.redAccent : (appColors.divider ?? Colors.transparent),
-                                              width: isSelected ? 3 : 1,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.05),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              )
-                                            ],
-                                          ),
-                                          clipBehavior: Clip.hardEdge,
-                                          child: Stack(
-                                            fit: StackFit.expand,
-                                            children: [
-                                              _PdfThumbnail(
-                                                document: _pdfDocument!,
-                                                pageNumber: page,
-                                              ),
-                                              if (isSelected)
-                                                Container(
-                                                  color: Colors.redAccent.withValues(alpha: 0.2),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      
-                                      // Checkbox for selection
-                                      Positioned(
-                                        top: -4,
-                                        right: -4,
-                                        child: Transform.scale(
-                                          scale: 1.1,
-                                          child: Checkbox(
-                                            value: isSelected,
-                                            activeColor: Colors.redAccent,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                            onChanged: (_) => _togglePage(page),
-                                          ),
-                                        ),
-                                      ),
-                                      
-                                      // Page Number Label
-                                      Positioned(
-                                        bottom: 4,
-                                        left: 0,
-                                        right: 0,
-                                        child: Center(
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black54,
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              '$page',
-                                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
+                            const SizedBox(height: 6),
+                            Text(
+                              'Tap to browse files from device',
+                              style: TextStyle(
+                                color: appColors.subtitle,
+                                fontSize: 13,
                               ),
                             ),
                           ],
                         ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: appColors.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: _pickPdf,
-                        icon: const Icon(Icons.picture_as_pdf),
-                        label: Text(_selectedPdf == null ? 'Select PDF' : 'Change PDF'),
-                        style: TextButton.styleFrom(
-                          backgroundColor: appColors.primary?.withValues(alpha: 0.1),
-                          foregroundColor: appColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
                       ),
                     ),
-                    if (_selectedPdf != null && _pagesToDelete.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _startDeleting,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  )
+                : Expanded(
+                    child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: _openPdfPreview,
+                        child: Container(
+                          margin: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: appColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.redAccent,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.redAccent.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          child: Text('Delete ${_pagesToDelete.length} Pages', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 45,
+                                height: 60,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: PdfFileThumbnail(file: _selectedPdf!),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      p.basename(_selectedPdf!.path),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: appColors.text,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '$_pageCount pages',
+                                      style: TextStyle(
+                                        color: appColors.subtitle,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      'Tap to preview PDF',
+                                      style: TextStyle(
+                                        color: Colors.blueAccent,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.remove_red_eye_outlined,
+                                color: Colors.blueAccent,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          'Select pages to DELETE. Tap image to preview full size.',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount:
+                                    3, // Reduced to 3 for better thumbnail visibility
+                                childAspectRatio:
+                                    0.75, // Standard PDF aspect ratio
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 16,
+                              ),
+                          itemCount: _pageCount,
+                          itemBuilder: (context, index) {
+                            final page = index + 1;
+                            final isSelected = _pagesToDelete.contains(page);
+
+                            return Stack(
+                              children: [
+                                // Thumbnail
+                                GestureDetector(
+                                  onTap: () => _showFullScreenPreview(page),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: appColors.surface,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Colors.redAccent
+                                            : (appColors.divider ??
+                                                  Colors.transparent),
+                                        width: isSelected ? 3 : 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    clipBehavior: Clip.hardEdge,
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        _PdfThumbnail(
+                                          document: _pdfDocument!,
+                                          pageNumber: page,
+                                        ),
+                                        if (isSelected)
+                                          Container(
+                                            color: Colors.redAccent.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                // Checkbox for selection
+                                Positioned(
+                                  top: -4,
+                                  right: -4,
+                                  child: Transform.scale(
+                                    scale: 1.1,
+                                    child: Checkbox(
+                                      value: isSelected,
+                                      activeColor: Colors.redAccent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      onChanged: (_) => _togglePage(page),
+                                    ),
+                                  ),
+                                ),
+
+                                // Page Number Label
+                                Positioned(
+                                  bottom: 4,
+                                  left: 0,
+                                  right: 0,
+                                  child: Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '$page',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ],
+                  ),
+                ),
+            if (_selectedPdf != null && _pdfDocument != null)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: appColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
                   ],
                 ),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: TextButton.icon(
+                          onPressed: _pickPdf,
+                          icon: const Icon(Icons.picture_as_pdf),
+                          label: const Text('Change PDF'),
+                          style: TextButton.styleFrom(
+                            backgroundColor: appColors.primary?.withValues(
+                              alpha: 0.1,
+                            ),
+                            foregroundColor: appColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_pagesToDelete.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: _startDeleting,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pinkAccent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              'Delete ${_pagesToDelete.length} Pages',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -489,10 +609,11 @@ class _PdfThumbnailState extends State<_PdfThumbnail> {
     super.initState();
     _renderPage();
   }
-  
+
   @override
   void didUpdateWidget(_PdfThumbnail oldWidget) {
-    if (oldWidget.document != widget.document || oldWidget.pageNumber != widget.pageNumber) {
+    if (oldWidget.document != widget.document ||
+        oldWidget.pageNumber != widget.pageNumber) {
       _renderPage();
     }
     super.didUpdateWidget(oldWidget);
@@ -503,14 +624,14 @@ class _PdfThumbnailState extends State<_PdfThumbnail> {
     setState(() => _isLoading = true);
     try {
       final page = await widget.document.getPage(widget.pageNumber);
-      
+
       // Render small thumbnail for grid
       final pageImage = await page.render(
         width: page.width / 4,
         height: page.height / 4,
         format: pdfx.PdfPageImageFormat.jpeg,
       );
-      
+
       if (mounted) {
         setState(() {
           _imageData = pageImage?.bytes;
@@ -535,10 +656,7 @@ class _PdfThumbnailState extends State<_PdfThumbnail> {
       );
     }
     if (_imageData != null) {
-      return Image.memory(
-        _imageData!,
-        fit: BoxFit.cover,
-      );
+      return Image.memory(_imageData!, fit: BoxFit.cover);
     }
     return const Center(child: Icon(Icons.error_outline, color: Colors.grey));
   }

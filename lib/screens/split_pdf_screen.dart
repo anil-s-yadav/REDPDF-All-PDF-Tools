@@ -217,238 +217,282 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _selectedPdf == null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.call_split,
-                            size: 80,
-                            color: appColors.subtitle?.withValues(alpha: 0.2),
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _selectedPdf == null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GestureDetector(
+                      onTap: _pickPdf,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 36,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: appColors.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.amber.shade700.withValues(alpha: 0.3),
+                            width: 1.5,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Select a PDF to split',
-                            style: TextStyle(
-                              color: appColors.subtitle,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                            onTap: _openPdfPreview,
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: appColors.surface,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color:
-                                      appColors.divider ?? Colors.transparent,
+                                color: Colors.amber.shade700.withValues(
+                                  alpha: 0.1,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.03),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                                shape: BoxShape.circle,
                               ),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 60,
-                                    height: 80,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: PdfFileThumbnail(
-                                        file: _selectedPdf!,
+                              child: Icon(
+                                Icons.call_split_rounded,
+                                size: 40,
+                                color: Colors.amber.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              'Select PDF to Split',
+                              style: TextStyle(
+                                color: appColors.text,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Tap to browse files from device',
+                              style: TextStyle(
+                                color: appColors.subtitle,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : Expanded(
+                    child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: _openPdfPreview,
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: appColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: appColors.divider ?? Colors.transparent,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 60,
+                                  height: 80,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: PdfFileThumbnail(
+                                      file: _selectedPdf!,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        p.basename(_selectedPdf!.path),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: appColors.text,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          p.basename(_selectedPdf!.path),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: appColors.text,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '$_pageCount pages',
+                                        style: TextStyle(
+                                          color: appColors.subtitle,
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '$_pageCount pages',
-                                          style: TextStyle(
-                                            color: appColors.subtitle,
-                                          ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Tap to preview PDF',
+                                        style: TextStyle(
+                                          color: Colors.blueAccent,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          'Tap to preview PDF',
-                                          style: TextStyle(
-                                            color: Colors.blueAccent,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                  const Icon(
-                                    Icons.remove_red_eye_outlined,
-                                    color: Colors.blueAccent,
-                                  ),
-                                ],
+                                ),
+                                const Icon(
+                                  Icons.remove_red_eye_outlined,
+                                  color: Colors.blueAccent,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Text(
+                          'Enter Page Ranges',
+                          style: TextStyle(
+                            color: appColors.text,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'You can enter multiple pairs Ex. 1-5, 6-11, 12-20',
+                          style: TextStyle(
+                            // color: appColors.text,
+                            // fontWeight: FontWeight.bold,
+                            // fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: _rangesController,
+                          style: TextStyle(color: appColors.text),
+                          decoration: InputDecoration(
+                            hintText: 'e.g., 1-5, 6-10',
+                            hintStyle: TextStyle(
+                              color: appColors.subtitle?.withValues(alpha: 0.5),
+                            ),
+                            filled: true,
+                            fillColor: appColors.surface,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: appColors.divider ?? Colors.transparent,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: appColors.divider ?? Colors.transparent,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          Text(
-                            'Enter Page Ranges',
-                            style: TextStyle(
-                              color: appColors.text,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'You can enter multiple pairs Ex. 1-5, 6-11, 12-20',
-                            style: TextStyle(
-                              // color: appColors.text,
-                              // fontWeight: FontWeight.bold,
-                              // fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _rangesController,
-                            style: TextStyle(color: appColors.text),
-                            decoration: InputDecoration(
-                              hintText: 'e.g., 1-5, 6-10',
-                              hintStyle: TextStyle(
-                                color: appColors.subtitle?.withValues(
-                                  alpha: 0.5,
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () {
+                                if (_pageCount > 1) {
+                                  final half = _pageCount ~/ 2;
+                                  _rangesController.text =
+                                      '1-$half, ${half + 1}-$_pageCount';
+                                }
+                              },
+                              icon: const Icon(Icons.vertical_split, size: 18),
+                              label: const Text('Split in half'),
+                              style: TextButton.styleFrom(
+                                backgroundColor: appColors.primary?.withValues(
+                                  alpha: 0.1,
                                 ),
-                              ),
-                              filled: true,
-                              fillColor: appColors.surface,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                  color:
-                                      appColors.divider ?? Colors.transparent,
+                                foregroundColor: appColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
                                 ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                  color:
-                                      appColors.divider ?? Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: [
-                              TextButton.icon(
-                                onPressed: () {
-                                  if (_pageCount > 1) {
-                                    final half = _pageCount ~/ 2;
-                                    _rangesController.text =
-                                        '1-$half, ${half + 1}-$_pageCount';
-                                  }
-                                },
-                                icon: const Icon(Icons.vertical_split, size: 18),
-                                label: const Text('Split in half'),
-                                style: TextButton.styleFrom(
-                                  backgroundColor: appColors.primary?.withValues(alpha: 0.1),
-                                  foregroundColor: appColors.primary,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            TextButton.icon(
+                              onPressed: () {
+                                if (_pageCount > 0) {
+                                  _rangesController.text = List.generate(
+                                    _pageCount,
+                                    (i) => '${i + 1}-${i + 1}',
+                                  ).join(', ');
+                                }
+                              },
+                              icon: const Icon(Icons.view_array, size: 18),
+                              label: const Text('Split every page'),
+                              style: TextButton.styleFrom(
+                                backgroundColor: appColors.primary?.withValues(
+                                  alpha: 0.1,
+                                ),
+                                foregroundColor: appColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              TextButton.icon(
-                                onPressed: () {
-                                  if (_pageCount > 0) {
-                                    _rangesController.text = List.generate(
-                                      _pageCount,
-                                      (i) => '${i + 1}-${i + 1}',
-                                    ).join(', ');
-                                  }
-                                },
-                                icon: const Icon(Icons.view_array, size: 18),
-                                label: const Text('Split every page'),
-                                style: TextButton.styleFrom(
-                                  backgroundColor: appColors.primary?.withValues(alpha: 0.1),
-                                  foregroundColor: appColors.primary,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: appColors.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
                   ),
-                ],
-              ),
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: _pickPdf,
-                        icon: const Icon(Icons.picture_as_pdf),
-                        label: Text(
-                          _selectedPdf == null ? 'Select PDF' : 'Change PDF',
-                        ),
-                        style: TextButton.styleFrom(
-                          backgroundColor: appColors.primary?.withValues(
-                            alpha: 0.1,
-                          ),
-                          foregroundColor: appColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                ),
+            if (_selectedPdf != null)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: appColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: TextButton.icon(
+                          onPressed: _pickPdf,
+                          icon: const Icon(Icons.picture_as_pdf),
+                          label: const Text('Change PDF'),
+                          style: TextButton.styleFrom(
+                            backgroundColor: appColors.primary?.withValues(
+                              alpha: 0.1,
+                            ),
+                            foregroundColor: appColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    if (_selectedPdf != null) ...[
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
@@ -472,10 +516,9 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

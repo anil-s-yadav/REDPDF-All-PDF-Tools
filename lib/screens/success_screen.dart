@@ -6,6 +6,8 @@ import 'package:redpdf_tools/theme/app_theme.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:provider/provider.dart';
 import 'package:redpdf_tools/providers/settings_provider.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
+import 'package:redpdf_tools/models/pdf_history.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -34,9 +36,12 @@ class SuccessScreen extends StatefulWidget {
 }
 
 class _SuccessScreenState extends State<SuccessScreen> {
+  late String _currentFileName;
+
   @override
   void initState() {
     super.initState();
+    _currentFileName = widget.fileName;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _saveToDownloads(context);
       RateUsUtils.showRateUsDialog(context);
@@ -59,7 +64,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
   }
 
   void _openPdf(BuildContext context) {
-    if (widget.fileName.toLowerCase().endsWith('.zip')) {
+    if (_currentFileName.toLowerCase().endsWith('.zip')) {
       SharePlus.instance.share(
         ShareParams(
           files: [XFile(widget.filePath)],
@@ -73,7 +78,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
       MaterialPageRoute(
         builder: (context) => PdfViewScreen(
           path: widget.filePath,
-          title: widget.fileName,
+          title: _currentFileName,
           initialPassword: widget.password,
         ),
       ),
@@ -93,14 +98,14 @@ class _SuccessScreenState extends State<SuccessScreen> {
       final settings = context.read<SettingsProvider>();
       final savedPath = await FileUtils.saveToDevice(
         sourcePath: widget.filePath,
-        fileName: widget.fileName,
+        fileName: _currentFileName,
         storageLocation: settings.storageLocation,
       );
 
       if (savedPath != null) {
         final folderName = settings.storageLocationDisplay;
         final finalFileName = savedPath.startsWith('content://')
-            ? widget.fileName
+            ? _currentFileName
             : p.basename(savedPath);
         // 7. Success message
         if (!context.mounted) return;
@@ -122,6 +127,191 @@ class _SuccessScreenState extends State<SuccessScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<void> _showRenameAndSaveDialog() async {
+    final appColors = Theme.of(context).appColors;
+    final ext = p.extension(_currentFileName);
+    final baseName = p.basenameWithoutExtension(_currentFileName);
+    final controller = TextEditingController(text: baseName);
+    controller.selection = TextSelection.collapsed(offset: baseName.length);
+
+    final newBaseName = await showDialog<String>(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: appColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Text(
+                'Rename and Save Again',
+                style: TextStyle(
+                  color: appColors.text,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Enter a new file name:',
+                    style: TextStyle(
+                      color: appColors.subtitle,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: appColors.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: appColors.divider ?? Colors.grey.shade300,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: controller,
+                            onChanged: (_) => setDialogState(() {}),
+                            style: TextStyle(
+                              color: appColors.text,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              isDense: true,
+                              hintText: 'Enter file name',
+                            ),
+                          ),
+                        ),
+                        if (controller.text.isNotEmpty)
+                          GestureDetector(
+                            onTap: () {
+                              controller.clear();
+                              setDialogState(() {});
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: Icon(
+                                Icons.cancel,
+                                size: 18,
+                                color: appColors.subtitle?.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ),
+                        Text(
+                          ext,
+                          style: TextStyle(
+                            color: appColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: appColors.subtitle),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final trimmed = controller.text.trim();
+                    if (trimmed.isNotEmpty) {
+                      Navigator.pop(dialogCtx, trimmed);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Save Again',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    if (newBaseName != null && newBaseName.trim().isNotEmpty) {
+      final finalName = '${newBaseName.trim()}$ext';
+      try {
+        final settings = context.read<SettingsProvider>();
+        final savedPath = await FileUtils.saveToDevice(
+          sourcePath: widget.filePath,
+          fileName: finalName,
+          storageLocation: settings.storageLocation,
+        );
+
+        if (savedPath != null) {
+          if (mounted) {
+            context.read<PdfProvider>().addHistory(
+              PdfHistory(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                title: finalName,
+                path: savedPath,
+                sizeInBytes: widget.fileSize,
+                createdAt: DateTime.now(),
+              ),
+            );
+          }
+
+          setState(() {
+            _currentFileName = finalName;
+          });
+
+          if (!mounted) return;
+          final folderName = settings.storageLocationDisplay;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Saved as $folderName/$finalName'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              showCloseIcon: true,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Save error: $e');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -217,7 +407,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 200),
         child: SafeArea(
           child: Column(
             children: [
@@ -283,7 +473,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                         height: 50,
                         child: ClipRRect(
                           borderRadius: BorderRadiusGeometry.circular(10),
-                          child: widget.fileName.toLowerCase().endsWith('.pdf')
+                          child: _currentFileName.toLowerCase().endsWith('.pdf')
                               ? AbsorbPointer(
                                   child: PdfViewer.file(
                                     widget.filePath,
@@ -321,7 +511,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.fileName,
+                              _currentFileName,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
@@ -334,7 +524,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             Text(
                               widget.totalPages > 0
                                   ? '${_formatSize(widget.fileSize)} • ${widget.totalPages} Pages'
-                                  : (widget.fileName.toLowerCase().endsWith(
+                                  : (_currentFileName.toLowerCase().endsWith(
                                           '.zip',
                                         )
                                         ? '${_formatSize(widget.fileSize)} • ZIP Archive'
@@ -363,7 +553,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   ),
                 ),
               ),
-              if (widget.fileName.toLowerCase().endsWith('.zip')) ...[
+              if (_currentFileName.toLowerCase().endsWith('.zip')) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -446,91 +636,95 @@ class _SuccessScreenState extends State<SuccessScreen> {
           ),
         ),
       ),
-      bottomSheet: Padding(
-        padding: EdgeInsetsGeometry.only(left: 20, right: 20, bottom: 50),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: _sharePdf,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          color: appColors.background,
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: _sharePdf,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
                   ),
-                  elevation: 0,
-                ),
-                icon: const Icon(Icons.share, color: Colors.white),
-                label: const Text(
-                  'Share PDF',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  icon: const Icon(Icons.share, color: Colors.white, size: 20),
+                  label: Text(
+                    _currentFileName.toLowerCase().endsWith('.zip')
+                        ? 'Share ZIP'
+                        : 'Share PDF',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: TextButton.icon(
-                      onPressed: () => _saveToDownloads(context),
-                      style: TextButton.styleFrom(
-                        backgroundColor: appColors.primary!.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                      icon: Icon(Icons.download, color: appColors.primary),
-                      label: Text(
-                        'Save Again',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: appColors.primary,
-                        ),
-                      ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: _showRenameAndSaveDialog,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appColors.primary?.withValues(alpha: 0.12),
+                    foregroundColor: appColors.primary,
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    side: BorderSide(
+                      color: appColors.primary ?? Colors.redAccent,
+                      width: 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                  ),
+                  icon: Icon(
+                    Icons.drive_file_rename_outline_rounded,
+                    color: appColors.primary,
+                    size: 20,
+                  ),
+                  label: Text(
+                    'Rename and save again',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: appColors.primary,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: TextButton.icon(
-                      onPressed: () => _goHome(context),
-                      style: TextButton.styleFrom(
-                        backgroundColor: appColors.primary!.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                      icon: Icon(Icons.home, color: appColors.primary),
-                      label: Text(
-                        'Home',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: appColors.primary,
-                        ),
-                      ),
+              ),
+              const SizedBox(height: 6),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () => _goHome(context),
+                  icon: Icon(Icons.home, color: appColors.subtitle, size: 18),
+                  label: Text(
+                    'Back to Home',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: appColors.subtitle,
                     ),
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

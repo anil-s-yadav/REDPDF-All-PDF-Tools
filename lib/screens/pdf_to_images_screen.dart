@@ -49,7 +49,11 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cannot read this PDF. It may be encrypted or corrupted.')),
+            const SnackBar(
+              content: Text(
+                'Cannot read this PDF. It may be encrypted or corrupted.',
+              ),
+            ),
           );
         }
       } finally {
@@ -62,8 +66,11 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
 
   Future<String?> _extractImages() async {
     final tempDir = await getTemporaryDirectory();
-    final outZipPath = p.join(tempDir.path, '${FileUtils.generateDefaultFileName(prefix: 'ExtractedImages')}.zip');
-    
+    final outZipPath = p.join(
+      tempDir.path,
+      '${FileUtils.generateDefaultFileName(prefix: 'ExtractedImages')}.zip',
+    );
+
     final doc = await pdfx.PdfDocument.openFile(_selectedPdf!.path);
     final archive = Archive();
     final baseName = p.basenameWithoutExtension(_selectedPdf!.path);
@@ -77,7 +84,11 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
       );
       if (pageImage != null) {
         final fileName = '${baseName}_page_$i.jpg';
-        final archiveFile = ArchiveFile(fileName, pageImage.bytes.length, pageImage.bytes);
+        final archiveFile = ArchiveFile(
+          fileName,
+          pageImage.bytes.length,
+          pageImage.bytes,
+        );
         archive.addFile(archiveFile);
       }
       await page.close();
@@ -87,7 +98,7 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
     final encoder = ZipEncoder();
     final zipFile = File(outZipPath);
     await zipFile.writeAsBytes(encoder.encode(archive));
-    
+
     return outZipPath;
   }
 
@@ -104,7 +115,7 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
             if (outPath == null) throw Exception('Extraction failed');
             final file = File(outPath);
             final fileSize = await file.length();
-            
+
             final history = PdfHistory(
               id: DateTime.now().millisecondsSinceEpoch.toString(),
               title: p.basename(outPath),
@@ -115,7 +126,7 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
             if (mounted) {
               context.read<PdfProvider>().addHistory(history);
             }
-            
+
             return ProcessResult(
               operation: 'PDF to Images',
               filePath: outPath,
@@ -137,7 +148,10 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
     return Scaffold(
       backgroundColor: appColors.background,
       appBar: AppBar(
-        title: Text('PDF to Images', style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold)),
+        title: Text(
+          'PDF to Images',
+          style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: appColors.background,
         elevation: 0,
         iconTheme: IconThemeData(color: appColors.text),
@@ -145,142 +159,222 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _selectedPdf == null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.image_outlined, size: 80, color: appColors.subtitle?.withValues(alpha: 0.2)),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Select a PDF to convert',
-                                style: TextStyle(color: appColors.subtitle, fontSize: 18),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(32),
-                                  decoration: BoxDecoration(
-                                    color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.compare_arrows, size: 64, color: Colors.deepPurpleAccent),
-                                ),
-                                const SizedBox(height: 32),
-                                Text(
-                                  'Ready to convert',
-                                  style: TextStyle(color: appColors.text, fontSize: 24, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 16),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => PdfViewScreen(
-                                          path: _selectedPdf!.path,
-                                          title: p.basename(_selectedPdf!.path),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: appColors.surface,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: appColors.primary ?? Colors.blue, width: 2),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: (appColors.primary ?? Colors.blue).withValues(alpha: 0.1),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 45,
-                                          height: 60,
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
-                                            child: PdfFileThumbnail(file: _selectedPdf!),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                p.basename(_selectedPdf!.path),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold, fontSize: 16),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text('$_pageCount pages to extract as JPGs', style: TextStyle(color: appColors.subtitle)),
-                                              const SizedBox(height: 6),
-                                              const Text('Tap to preview PDF', style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.w600)),
-                                            ],
-                                          ),
-                                        ),
-                                        const Icon(Icons.remove_red_eye_outlined, color: Colors.blueAccent),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Images will be saved as a ZIP file.',
-                                  style: TextStyle(color: appColors.subtitle),
-                                ),
-                              ],
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _selectedPdf == null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GestureDetector(
+                      onTap: _pickPdf,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 36,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: appColors.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.deepPurpleAccent.withValues(
+                              alpha: 0.3,
                             ),
+                            width: 1.5,
                           ),
                         ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: appColors.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: _pickPdf,
-                        icon: const Icon(Icons.picture_as_pdf),
-                        label: Text(_selectedPdf == null ? 'Select PDF' : 'Change PDF'),
-                        style: TextButton.styleFrom(
-                          backgroundColor: appColors.primary?.withValues(alpha: 0.1),
-                          foregroundColor: appColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.deepPurpleAccent.withValues(
+                                  alpha: 0.1,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.image_outlined,
+                                size: 40,
+                                color: Colors.deepPurpleAccent,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              'Select PDF to Convert',
+                              style: TextStyle(
+                                color: appColors.text,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Tap to browse files from device',
+                              style: TextStyle(
+                                color: appColors.subtitle,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    if (_selectedPdf != null) ...[
+                  )
+                : Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: Colors.deepPurpleAccent.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.compare_arrows,
+                              size: 64,
+                              color: Colors.deepPurpleAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          Text(
+                            'Ready to convert',
+                            style: TextStyle(
+                              color: appColors.text,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PdfViewScreen(
+                                    path: _selectedPdf!.path,
+                                    title: p.basename(_selectedPdf!.path),
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: appColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: appColors.primary ?? Colors.blue,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (appColors.primary ?? Colors.blue)
+                                        .withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 45,
+                                    height: 60,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: PdfFileThumbnail(
+                                        file: _selectedPdf!,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          p.basename(_selectedPdf!.path),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: appColors.text,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '$_pageCount pages to extract as JPGs',
+                                          style: TextStyle(
+                                            color: appColors.subtitle,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        const Text(
+                                          'Tap to preview PDF',
+                                          style: TextStyle(
+                                            color: Colors.blueAccent,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Images will be saved as a ZIP file.',
+                            style: TextStyle(color: appColors.subtitle),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+            if (_selectedPdf != null)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: appColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: TextButton.icon(
+                          onPressed: _pickPdf,
+                          icon: const Icon(Icons.picture_as_pdf),
+                          label: const Text('Change PDF'),
+                          style: TextButton.styleFrom(
+                            backgroundColor: appColors.primary?.withValues(
+                              alpha: 0.1,
+                            ),
+                            foregroundColor: appColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
@@ -290,16 +384,23 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepPurpleAccent,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
-                          child: const Text('Convert to Images', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'Convert to Images',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

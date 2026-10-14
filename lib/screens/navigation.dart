@@ -22,10 +22,10 @@ class _NavigationState extends State<Navigation> {
     });
   }
 
-  final List<Widget> _pages = [
-    const HomeScreen(),
-    const ToolsScreen(),
-    const SettingsScreen(),
+  static const List<Widget> _pages = [
+    HomeScreen(),
+    ToolsScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -35,7 +35,10 @@ class _NavigationState extends State<Navigation> {
 
     return Scaffold(
       backgroundColor: appColors.background,
-      body: _pages[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton.extended(
               onPressed: () => Navigator.push(

@@ -7,8 +7,8 @@ import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'package:redpdf_tools/providers/theme_provider.dart';
 // import '../providers/pdf_provider.dart';
 import 'package:redpdf_tools/providers/settings_provider.dart';
-// import '../providers/theme_provider.dart';
 import 'screens/navigation.dart';
+import 'screens/tools_screen.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 import 'package:redpdf_tools/services/notification_service.dart';
 
@@ -16,6 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService.instance.initialize();
+  await ToolsScreen.initPreferences();
   runApp(
     MultiProvider(
       providers: [

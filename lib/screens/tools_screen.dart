@@ -14,29 +14,55 @@ import 'pdf_to_images_screen.dart';
 class ToolsScreen extends StatefulWidget {
   const ToolsScreen({super.key});
 
+  static bool cachedIsGridView = false;
+  static bool hasLoadedPreference = false;
+
+  static Future<void> initPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      cachedIsGridView = prefs.getBool('tools_grid_view') ?? false;
+      hasLoadedPreference = true;
+    } catch (_) {}
+  }
+
   @override
   State<ToolsScreen> createState() => _ToolsScreenState();
 }
 
-class _ToolsScreenState extends State<ToolsScreen> {
-  bool _isGridView = false;
+class _ToolsScreenState extends State<ToolsScreen>
+    with AutomaticKeepAliveClientMixin {
+  late bool _isGridView;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    _loadPreference();
+    _isGridView = ToolsScreen.cachedIsGridView;
+    if (!ToolsScreen.hasLoadedPreference) {
+      _loadPreference();
+    }
   }
 
   Future<void> _loadPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isGridView = prefs.getBool('tools_grid_view') ?? false;
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isGrid = prefs.getBool('tools_grid_view') ?? false;
+      ToolsScreen.cachedIsGridView = isGrid;
+      ToolsScreen.hasLoadedPreference = true;
+      if (mounted && _isGridView != isGrid) {
+        setState(() {
+          _isGridView = isGrid;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _toggleView() async {
     setState(() {
       _isGridView = !_isGridView;
+      ToolsScreen.cachedIsGridView = _isGridView;
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('tools_grid_view', _isGridView);
@@ -44,71 +70,99 @@ class _ToolsScreenState extends State<ToolsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final appColors = Theme.of(context).appColors;
-    
+
     final tools = [
       _ToolItem(
         title: 'Image to PDF',
-        subtitle: 'Convert your gallery photos or camera captures to PDF',
+        subtitle: 'Convert your gallery or camera photos to PDF',
         iconData: Icons.camera_enhance_outlined,
         color: Colors.blueAccent,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImageToPdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ImageToPdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'Lock PDF',
         subtitle: 'Secure your documents with military-grade encryption',
         iconData: Icons.lock_outline,
         color: Colors.redAccent,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LockPdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LockPdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'Unlock PDF',
         subtitle: 'Instant removal of PDF passwords and restrictions',
         iconData: Icons.lock_open_outlined,
         color: Colors.teal,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UnlockPdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UnlockPdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'Compress PDF',
         subtitle: 'Reduce PDF file size while maintaining high quality',
         iconData: Icons.compress_rounded,
         color: Colors.deepOrangeAccent,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompressPdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CompressPdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'Merge PDFs',
         subtitle: 'Combine multiple PDF files into one document',
         iconData: Icons.merge_type,
         color: Colors.indigo,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MergePdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MergePdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'Split PDF',
         subtitle: 'Extract pages or split PDF into multiple files',
         iconData: Icons.call_split,
         color: Colors.amber.shade700,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitPdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SplitPdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'Add Pages',
         subtitle: 'Append other PDFs or images to your PDF',
         iconData: Icons.note_add_outlined,
         color: Colors.green,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPagesPdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddPagesPdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'Delete Pages',
         subtitle: 'Remove unwanted pages from your PDF',
         iconData: Icons.auto_delete_outlined,
         color: Colors.pinkAccent,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DeletePagesPdfScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DeletePagesPdfScreen()),
+        ),
       ),
       _ToolItem(
         title: 'PDF to Images',
         subtitle: 'Convert PDF pages into high-quality images',
         iconData: Icons.image_outlined,
         color: Colors.deepPurpleAccent,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfToImagesScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PdfToImagesScreen()),
+        ),
       ),
     ];
 
@@ -137,7 +191,9 @@ class _ToolsScreenState extends State<ToolsScreen> {
               color: appColors.text,
             ),
             onPressed: _toggleView,
-            tooltip: _isGridView ? 'Switch to List View' : 'Switch to Grid View',
+            tooltip: _isGridView
+                ? 'Switch to List View'
+                : 'Switch to Grid View',
           ),
           const SizedBox(width: 8),
         ],
@@ -148,7 +204,10 @@ class _ToolsScreenState extends State<ToolsScreen> {
           child: _isGridView
               ? GridView.builder(
                   key: const ValueKey('grid'),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
@@ -169,9 +228,13 @@ class _ToolsScreenState extends State<ToolsScreen> {
                 )
               : ListView.separated(
                   key: const ValueKey('list'),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 20,
+                  ),
                   itemCount: tools.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final item = tools[index];
                     return _ToolListCard(
