@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "redpdf_tools",
-      "version": "2.0.0+7",
+      "version": "2.1.0+8",
       "dependencies": [
         "archive",
         "change_app_package_name",

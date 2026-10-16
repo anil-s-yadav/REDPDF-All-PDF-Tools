@@ -819,7 +819,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Version 2.0.0 (7)',
+                      'Version 2.1.0 (8)',
                       style: TextStyle(
                         color: appColors.subtitle?.withValues(alpha: 0.4),
                         fontSize: 11,
