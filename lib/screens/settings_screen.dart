@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:redpdf_tools/screens/termservice_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
@@ -753,11 +752,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Icons.description_rounded,
                     'Terms of Service',
                     iconColor: const Color(0xFF8B5CF6),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const TermsOfServiceScreen(),
-                      ),
+                    onTap: () => _launchUrl(
+                      "https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/terms.html",
                     ),
                   ),
                   _buildListTile(
