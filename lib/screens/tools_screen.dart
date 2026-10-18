@@ -77,7 +77,7 @@ class _ToolsScreenState extends State<ToolsScreen>
     final tools = [
       _ToolItem(
         title: 'Scan Documents',
-        subtitle: 'Scan physical papers into crisp digital PDF',
+        subtitle: 'Scan physical papers into crisp digital PDF using AI',
         iconData: Icons.document_scanner_outlined,
         color: const Color(0xFF0284C7),
         onTap: () => Navigator.push(

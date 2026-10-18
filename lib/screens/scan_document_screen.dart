@@ -26,7 +26,7 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
     _documentScanner = DocumentScanner(
       options: DocumentScannerOptions(
         documentFormats: const {DocumentFormat.jpeg, DocumentFormat.pdf},
-        mode: ScannerMode.base,
+        mode: ScannerMode.full,
         isGalleryImport: true,
         pageLimit: 100,
       ),
@@ -188,7 +188,7 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
             Text(
               _isScanning
                   ? 'Please wait while camera loads...'
-                  : 'Tap to scan paper documents and convert to PDF',
+                  : 'Tap to scan papers with auto-edge detection & AI cleanup',
               textAlign: TextAlign.center,
               style: TextStyle(color: appColors.subtitle, fontSize: 13),
             ),
