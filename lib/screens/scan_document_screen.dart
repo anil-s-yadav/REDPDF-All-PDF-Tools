@@ -60,12 +60,9 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
     } catch (e) {
       debugPrint("Document scanning error: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Document scanner error: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Document scanner error: $e')));
       }
     } finally {
       if (mounted) {
