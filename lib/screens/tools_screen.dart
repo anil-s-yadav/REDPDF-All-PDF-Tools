@@ -10,6 +10,7 @@ import 'split_pdf_screen.dart';
 import 'add_pages_pdf_screen.dart';
 import 'delete_pages_pdf_screen.dart';
 import 'pdf_to_images_screen.dart';
+import 'scan_document_screen.dart';
 
 class ToolsScreen extends StatefulWidget {
   const ToolsScreen({super.key});
@@ -74,6 +75,16 @@ class _ToolsScreenState extends State<ToolsScreen>
     final appColors = Theme.of(context).appColors;
 
     final tools = [
+      _ToolItem(
+        title: 'Scan Documents',
+        subtitle: 'Scan physical papers into crisp digital PDF',
+        iconData: Icons.document_scanner_outlined,
+        color: const Color(0xFF0284C7),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ScanDocumentScreen()),
+        ),
+      ),
       _ToolItem(
         title: 'Image to PDF',
         subtitle: 'Convert your gallery or camera photos to PDF',

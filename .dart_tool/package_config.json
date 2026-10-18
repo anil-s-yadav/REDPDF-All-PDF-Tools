@@ -272,6 +272,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "google_mlkit_document_scanner",
+      "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/google_mlkit_document_scanner-0.6.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.12"
+    },
+    {
       "name": "hooks",
       "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/hooks-1.0.1",
       "packageUri": "lib/",

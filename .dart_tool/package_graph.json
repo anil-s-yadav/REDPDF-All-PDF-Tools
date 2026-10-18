@@ -15,6 +15,7 @@
         "flutter_image_compress",
         "flutter_local_notifications",
         "flutter_timezone",
+        "google_mlkit_document_scanner",
         "image_cropper",
         "image_picker",
         "in_app_review",
@@ -64,6 +65,13 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "google_mlkit_document_scanner",
+      "version": "0.6.1",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

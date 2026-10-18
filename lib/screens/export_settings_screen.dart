@@ -17,8 +17,15 @@ import 'package:path/path.dart' as p;
 
 class ExportSettingsScreen extends StatefulWidget {
   final List<File> images;
+  final String? defaultFileNamePrefix;
+  final String? operationName;
 
-  const ExportSettingsScreen({super.key, required this.images});
+  const ExportSettingsScreen({
+    super.key,
+    required this.images,
+    this.defaultFileNamePrefix,
+    this.operationName,
+  });
 
   @override
   State<ExportSettingsScreen> createState() => _ExportSettingsScreenState();
@@ -134,8 +141,9 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
 
     final dir = await getApplicationDocumentsDirectory();
     final enteredName = _fileNameController.text.trim();
+    final prefix = widget.defaultFileNamePrefix ?? 'REDPDF';
     final baseName = enteredName.isEmpty
-        ? FileUtils.generateDefaultFileName(prefix: 'REDPDF')
+        ? FileUtils.generateDefaultFileName(prefix: prefix)
         : (enteredName.toLowerCase().endsWith('.pdf')
               ? enteredName.substring(0, enteredName.length - 4)
               : enteredName);
@@ -163,7 +171,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     }
 
     return ProcessResult(
-      operation: "Created",
+      operation: widget.operationName ?? "Created",
       filePath: file.path,
       fileName: finalFileName,
       fileSize: bytes.length,
